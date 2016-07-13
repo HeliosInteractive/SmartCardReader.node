@@ -1,0 +1,29 @@
+{
+  "name": "smartcardreader",
+  "version": "0.0.1",
+  "description": "NFC SmartCardReader for Node.js on Windows",
+  "main": "index.js",
+  "scripts": {
+    "install": "node-gyp clean configure build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HeliosInteractive/SmartCardReader.node.git"
+  },
+  "keywords": [
+    "nfc"
+  ],
+  "dependencies": {
+    "bindings": "*",
+    "nan": "*",
+    "node-gyp": "*"
+  },
+  "author": "Sepehr Laal <sepehr.laal@heliosinteractive.com>",
+  "license": "MIT",
+  "gypfile": true,
+  "bugs": {
+    "url": "https://github.com/HeliosInteractive/SmartCardReader.node/issues"
+  },
+  "homepage": "https://github.com/HeliosInteractive/SmartCardReader.node#readme",
+  "devDependencies": {}
+}
