@@ -17,3 +17,5 @@ Queries the first device name attached to Windows. This is an actual native quer
 
 ###`SmartCardReader::poll`
 Polls data from the device returned by `SmartCardReader::query`. Caller should call this as often as possible to capture the data. Use of `process.nextTick` is advised.
+
+**Returns:** Read data on success, Empty string on failure OR no data.
