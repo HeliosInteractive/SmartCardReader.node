@@ -8,7 +8,7 @@ namespace {
 
 struct ScopedCardConnect
 {
-    ScopedCardConnect(SCARDHANDLE& ctx) : context(ctx) {}
+    ScopedCardConnect(SCARDHANDLE& ctx) : context(ctx) { /* no-op */ }
     ~ScopedCardConnect() {
         if (context != NULL) {
             ::SCardDisconnect(context, SCARD_RESET_CARD);
@@ -25,32 +25,50 @@ namespace helios
 
 SmartCardReader::SmartCardReader()
     : mContext(NULL)
-    , mHandle(NULL)
 {
-    auto status = ::SCardEstablishContext(SCARD_SCOPE_SYSTEM, NULL, NULL, &mContext);
-    
-    if (status == SCARD_S_SUCCESS)
-    {
-        // queries the 1st. dev
-        query(mCardName);
-    }
+    setup();
 }
 
 SmartCardReader::~SmartCardReader()
 {
-    if (mContext != NULL)
-    {
-        // may fail but there is nothing we can do about it!
-        ::SCardReleaseContext(mContext);
-    }
+    release();
 }
 
-bool SmartCardReader::poll(std::string& data)
+bool SmartCardReader::setup()
 {
-    if (mContext == NULL)
-        return false;
+    release();
 
+    auto status = ::SCardEstablishContext(SCARD_SCOPE_SYSTEM, NULL, NULL, &mContext);
+
+    if (status == SCARD_S_SUCCESS)
+    {
+        query(mCardName);
+    }
+
+    return !mCardName.empty();
+}
+
+void SmartCardReader::release()
+{
+    if (mContext != NULL)
+    {
+        ::SCardReleaseContext(mContext);
+        mContext = NULL;
+    }
+
+    if (!mCardName.empty())
+        mCardName.clear();
+}
+
+long SmartCardReader::poll(std::string& data)const
+{
+    if (mContext == NULL || mCardName.empty())
+        return -1;
+
+    SCARDHANDLE mHandle = NULL;
+    bool invalid_context = false;
     unsigned long dwActiveProtocol = 0;
+
     long status = ::SCardConnectA(
         mContext,
         mCardName.c_str(),
@@ -75,41 +93,53 @@ bool SmartCardReader::poll(std::string& data)
 
         case SCARD_PROTOCOL_UNDEFINED:
         default:
-            return false;
+            invalid_context = true;
             break;
         }
 
-        byte pbRecvBuffer[10]{ 0 };
-        byte ReadUIDCmd[] = { 0xFF, 0xCA, 0x00, 0x00, 0x00 }; // Gets the card's UID
-        auto dwRecvLength = sizeof(pbRecvBuffer);
-        auto minRecvLength = sizeof(DWORDLONG);
-
-        status = ::SCardBeginTransaction(mHandle);
-        status = ::SCardTransmit(mHandle, &pioSendPci, ReadUIDCmd, sizeof(ReadUIDCmd), 0, pbRecvBuffer, reinterpret_cast<LPDWORD>(&dwRecvLength));
-        status = ::SCardEndTransaction(mHandle, SCARD_LEAVE_CARD);
-
-        if (status == SCARD_S_SUCCESS)
+        if (!invalid_context)
         {
-            std::stringstream ss;
+            byte pbRecvBuffer[10]{ 0 };
+            byte ReadUIDCmd[] = { 0xFF, 0xCA, 0x00, 0x00, 0x00 }; // Gets the card's UID
+            auto dwRecvLength = sizeof(pbRecvBuffer);
+            auto minRecvLength = sizeof(DWORDLONG);
 
-            // Get the Unique ID from the NFC card.
-            auto loopCount = std::min(minRecvLength, dwRecvLength);
-            for (auto i = 0; i < loopCount; i++)
+            status = ::SCardBeginTransaction(mHandle);
+            status = ::SCardTransmit(mHandle, &pioSendPci, ReadUIDCmd, sizeof(ReadUIDCmd), 0, pbRecvBuffer, reinterpret_cast<LPDWORD>(&dwRecvLength));
+            status = ::SCardEndTransaction(mHandle, SCARD_LEAVE_CARD);
+
+            if (status == SCARD_S_SUCCESS)
             {
-                ss << std::uppercase << std::hex << std::setfill('0') << std::setw(2) << (int)pbRecvBuffer[i];
-            }
+                std::stringstream data_read_buf;
 
-            data = ss.str();
-            return true;
+                auto loopCount = std::min(minRecvLength, dwRecvLength);
+                for (decltype(loopCount) i = 0; i < loopCount; i++)
+                {
+                    data_read_buf
+                        << std::uppercase
+                        << std::hex
+                        << std::setfill('0')
+                        << std::setw(2)
+                        << (int)pbRecvBuffer[i];
+                }
+
+                if (!data_read_buf.str().empty())
+                {
+                    data = data_read_buf.str();
+                }
+            }
         }
     }
 
-    return false;
+    return status;
 }
 
-bool SmartCardReader::query(std::string& name)
+bool SmartCardReader::query(std::string& name) const
 {
     bool succeed = false;
+
+    if (!name.empty())
+        name.clear();
 
     if (mContext != NULL)
     {
@@ -124,9 +154,6 @@ bool SmartCardReader::query(std::string& name)
 
         if (lReturn == SCARD_S_SUCCESS)
         {
-            // Do something with the multi string of readers.
-            // Output the values.
-            // A double-null terminates the list of values.
             pReader = pmszReaders;
             if ('\0' != *pReader && pReader != nullptr)
             {
