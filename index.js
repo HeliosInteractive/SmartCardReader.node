@@ -1,2 +1,2 @@
 var scr = require('bindings')('SmartCardReader');
-exports.SmartCardReader = SmartCardReader;
+exports.SmartCardReader = new scr.SmartCardReader();
