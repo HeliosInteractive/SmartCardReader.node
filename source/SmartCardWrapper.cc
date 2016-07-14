@@ -28,7 +28,7 @@ NAN_METHOD(SmartCardWrapper::Poll)
         v8::Local<v8::Object> object = Nan::New<v8::Object>();
         object->Set(Nan::New("code").ToLocalChecked(), Nan::New(self->mReader.poll(data)));
         object->Set(Nan::New("data").ToLocalChecked(), Nan::New(data).ToLocalChecked());
-        info.GetReturnValue().Set(Nan::New(data).ToLocalChecked());
+        info.GetReturnValue().Set(object);
     }
     else
     {
