@@ -12,12 +12,13 @@ public:
     SmartCardReader();
     ~SmartCardReader();
 
-    bool            poll(std::string& data);
-    bool            query(std::string& name);
+    bool            setup();
+    void            release();
+    long            poll(std::string& data) const;
+    bool            query(std::string& name) const;
 
 private:
     SCARDCONTEXT    mContext;
-    SCARDHANDLE	    mHandle;
     std::string     mCardName;
 };
 
