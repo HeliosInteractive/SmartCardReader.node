@@ -1,9 +1,7 @@
 const EventEmitter = require('events').EventEmitter;
 const SmartCardReader = require('bindings')('SmartCardReader');
 const util = require('util');
-
-const codes = new Map();
-codes.set(-2146435042, 'SCARD_E_SERVICE_STOPPED');
+const codes = require('./lib/codes');
 
 var SMC = function() {
   let SMC = {};
@@ -16,35 +14,35 @@ var SMC = function() {
 let internal = {};
 Object.assign(internal, EventEmitter.prototype);
 
+internal.device;
 internal.lastRead = '';
 internal.timeout = 0;
 
-internal.dispatch = function(data){
+function dispatch(data){
 
   if (data === '') return;
   if (data === '6300') return;
 
   smc.emit('read', data);
-};
+}
 
 function poll() {
 
   let res = smc.SmartCardReader.poll();
 
-  if( codes.has(res.code) )
-    if( codes.get(res.code) === 'SCARD_E_SERVICE_STOPPED' )
-      return reconnect();
+  if( codes.get(res.code) === 'SCARD_E_SERVICE_STOPPED' )
+    return reconnect();
 
   if( smc.lastRead === res.data )
     clearTimeout(smc.timeout);
 
   smc.lastRead = res.data;
   smc.timeout = setTimeout(() => {
-    smc.dispatch(res.data)
+    dispatch(res.data)
   }, 50);
 
   setImmediate(poll);
-};
+}
 
 function reconnect(){
   let connected = smc.SmartCardReader.setup();
