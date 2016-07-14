@@ -15,6 +15,8 @@ NAN_MODULE_INIT(ModuleInit)
 
     SetPrototypeMethod(tpl, "poll", SmartCardWrapper::Poll);
     SetPrototypeMethod(tpl, "query", SmartCardWrapper::Query);
+    SetPrototypeMethod(tpl, "setup", SmartCardWrapper::Setup);
+    SetPrototypeMethod(tpl, "release", SmartCardWrapper::Release);
 
     Nan::Set(target, Nan::New(cls).ToLocalChecked(), tpl->GetFunction());
 };
