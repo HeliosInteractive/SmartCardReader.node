@@ -9,10 +9,9 @@ else {
 }
 
 var poll = function() {
-	var data = SmartCardReader.poll();
-	if (data != '') {
-		console.log('Read data: ' + data);
-	}
+	var read = SmartCardReader.poll();
+	if (read.data != '')
+		console.log(read);
 	process.nextTick(poll);
 }
 
