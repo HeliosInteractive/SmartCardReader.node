@@ -9,15 +9,28 @@ var SMC = function() {
   SMC.SmartCardReader = new SmartCardReader.SmartCardReader();
   SMC.device = SMC.SmartCardReader.query();
   Object.assign(SMC, internal);
+  SMC.device && setImmediate(() => {SMC.emit('connect', SMC.device)});
   return SMC;
 };
 let internal = {};
 Object.assign(internal, EventEmitter.prototype);
 
-internal.device;
 internal.lastRead = '';
 internal.timeout = 0;
 
+/**
+ * Clears the last id if the current id is the last id
+ * @param data
+ */
+function clearLast(data){
+
+  if( smc.lastRead === data )
+    smc.lastRead = '';
+}
+/**
+ * Dispatch id if not empty and not end
+ * @param data
+ */
 function dispatch(data){
 
   if (data === '') return;
@@ -25,29 +38,49 @@ function dispatch(data){
 
   smc.emit('read', data);
 }
+/**
+ * Handles timeout from identical polling ids
+ * @param data
+ * @returns {*}
+ */
+function flooding(data){
 
+  clearTimeout(smc.timeout);
+  smc.timeout = setTimeout(() => {
+    clearLast(data)
+  }, 100);
+  return setImmediate(poll);
+
+}
+/**
+ * Polls the reader for new cards
+ * @returns {*}
+ */
 function poll() {
 
   let res = smc.SmartCardReader.poll();
 
-  if( codes.get(res.code) === 'SCARD_E_SERVICE_STOPPED' )
+  if( codes.get(res.code) === 'SCARD_E_SERVICE_STOPPED' ) {
+    smc.emit('disconnect', smc.device);
     return reconnect();
+  }
 
   if( smc.lastRead === res.data )
-    clearTimeout(smc.timeout);
+    return flooding(res.data);
 
   smc.lastRead = res.data;
-  smc.timeout = setTimeout(() => {
-    dispatch(res.data)
-  }, 50);
-
+  dispatch(res.data);
   setImmediate(poll);
 }
-
+/**
+ * Reconnect the reader
+ * @returns {*}
+ */
 function reconnect(){
   let connected = smc.SmartCardReader.setup();
   if( connected ){
     smc.device = smc.SmartCardReader.query();
+    smc.emit('connect', smc.device);
     return poll();
   }
   setImmediate(reconnect);

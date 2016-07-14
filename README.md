@@ -18,13 +18,21 @@ Queries the first device name attached to Windows.
 ### `Events`
 
  - **read** emits data from the tag when a tag is successfully read
+ - **connect** when a connected device is found
+ - **disconnect** when a connected device is removed
 
 ### `Examples`
 ```
 var SmartCardReader = require('smartcardreader');
 
+SmartCardReader.on('connect', (device) => {
+  console.info(`connected: ${device}`);
+});
+SmartCardReader.on('disconnect', (device) => {
+  console.info(`disconnected: ${device}`);
+});
 SmartCardReader.on('read', (data) => {
-  //do something with data
+  console.info(`read: ${data}`);
 });
 ```
 
