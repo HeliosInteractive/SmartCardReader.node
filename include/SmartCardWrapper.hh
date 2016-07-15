@@ -17,6 +17,9 @@ public:
     static NAN_METHOD(Release);
 
 private:
+    SmartCardWrapper(const std::string& device);
+
+private:
     SmartCardReader mReader;
 };
 

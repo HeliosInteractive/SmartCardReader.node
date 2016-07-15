@@ -9,7 +9,12 @@ NAN_METHOD(SmartCardWrapper::New)
     
     if (info.IsConstructCall())
     {
-        (new SmartCardWrapper())->Wrap(info.This());
+        std::string device = "";
+
+        if (info.Length() > 0 && info[0]->IsString())
+            device = *v8::String::Utf8Value(info[0]);
+
+        (new SmartCardWrapper(device))->Wrap(info.This());
         info.GetReturnValue().Set(info.This());
     }
     else
@@ -65,7 +70,12 @@ NAN_METHOD(SmartCardWrapper::Setup)
 
     if (auto self = Nan::ObjectWrap::Unwrap<SmartCardWrapper>(info.This()))
     {
-        info.GetReturnValue().Set(self->mReader.setup());
+        std::string device = "";
+
+        if (info.Length() > 0 && info[0]->IsString())
+            device = *v8::String::Utf8Value(info[0]);
+
+        info.GetReturnValue().Set(self->mReader.setup(device));
     }
     else
     {
@@ -87,5 +97,9 @@ NAN_METHOD(SmartCardWrapper::Release)
         return Nan::ThrowError("Unable to unwrap the native instance.");
     }
 }
+
+SmartCardWrapper::SmartCardWrapper(const std::string& device)
+    : mReader(device)
+{}
 
 }

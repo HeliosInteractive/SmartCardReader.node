@@ -23,10 +23,10 @@ struct ScopedCardConnect
 namespace helios
 {
 
-SmartCardReader::SmartCardReader()
+SmartCardReader::SmartCardReader(const std::string& device)
     : mContext(NULL)
 {
-    setup();
+    setup(device);
 }
 
 SmartCardReader::~SmartCardReader()
@@ -34,7 +34,7 @@ SmartCardReader::~SmartCardReader()
     release();
 }
 
-bool SmartCardReader::setup()
+bool SmartCardReader::setup(const std::string& device /* = "" */)
 {
     release();
 
@@ -42,7 +42,14 @@ bool SmartCardReader::setup()
 
     if (status == SCARD_S_SUCCESS)
     {
-        query(mCardName);
+        if (device.empty())
+        {
+            query(mCardName);
+        }
+        else
+        {
+            mCardName = device;
+        }
     }
 
     return !mCardName.empty();

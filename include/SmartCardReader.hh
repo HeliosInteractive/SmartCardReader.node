@@ -9,10 +9,10 @@ namespace helios
 class SmartCardReader
 {
 public:
-    SmartCardReader();
+    SmartCardReader(const std::string& device = "");
     ~SmartCardReader();
 
-    bool            setup();
+    bool            setup(const std::string& device = "");
     void            release();
     long            poll(std::string& data) const;
     bool            query(std::string& name) const;
