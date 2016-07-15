@@ -10,10 +10,23 @@ npm install smartcardreader && node test
 
 ## JavaScript Usage
 
+### `SmartCardReader`
+Creates a new connection to a smart card reader. Optionally specify a reader name
+
+```
+var SmartCardReaderName = require('smartcardreader')('name of device');
+var SmartCardReaderFirstFound = require('smartcardreader')();
+```
+
 ### `SmartCardReader.device`
 Queries the first device name attached to Windows.
 
 **Returns:** Device name on success, undefined on failure
+
+### `SmartCardReader.devices`
+Returns the name of all connected devices
+
+**Returns:** Array of device names
 
 ### `Events`
 
@@ -23,7 +36,7 @@ Queries the first device name attached to Windows.
 
 ### `Examples`
 ```
-var SmartCardReader = require('smartcardreader');
+var SmartCardReader = require('smartcardreader')();
 
 SmartCardReader.on('connect', (device) => {
   console.info(`connected: ${device}`);
@@ -35,6 +48,8 @@ SmartCardReader.on('read', (data) => {
   console.info(`read: ${data}`);
 });
 ```
+
+> Some readers register as multiple devices. To ensure connectivity is it advised that you specify the name of the expected device
 
 ## Binding usage
 

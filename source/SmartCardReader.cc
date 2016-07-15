@@ -179,4 +179,40 @@ bool SmartCardReader::query(std::string& name) const
     return succeed;
 }
 
+bool SmartCardReader::query(std::vector<std::string>& devices) const
+{
+  if (!devices.empty())
+    devices.clear();
+
+  if (mContext != NULL)
+  {
+    LPTSTR pmszReaders = nullptr;
+    LPTSTR pReader = nullptr;
+    LONG   lReturn = 0, lReturn2 = 0;
+    DWORD  cch = SCARD_AUTOALLOCATE;
+
+    lReturn = ::SCardListReaders(
+      mContext,
+      nullptr, (LPTSTR)&pmszReaders, &cch);
+
+    if (lReturn == SCARD_S_SUCCESS)
+    {
+      pReader = pmszReaders;
+      while ('\0' != *pReader && pReader != nullptr)
+      {
+        devices.push_back(pReader);
+        pReader = pReader + wcslen((wchar_t *)pReader) + 1;
+      }
+    }
+
+    if (pmszReaders != nullptr)
+    {
+      // may fail but there is nothing we can do about it!
+      ::SCardFreeMemory(mContext, pmszReaders);
+    }
+  }
+
+  return !devices.empty();
+}
+
 }

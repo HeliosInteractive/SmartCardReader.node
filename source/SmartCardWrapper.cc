@@ -41,7 +41,7 @@ NAN_METHOD(SmartCardWrapper::Poll)
     }
 }
 
-NAN_METHOD(SmartCardWrapper::Query)
+NAN_METHOD(SmartCardWrapper::QueryFirstDevice)
 {
     Nan::HandleScope scope;
 
@@ -62,6 +62,28 @@ NAN_METHOD(SmartCardWrapper::Query)
     {
         return Nan::ThrowError("Unable to unwrap the native instance.");
     }
+}
+
+NAN_METHOD(SmartCardWrapper::QueryAllDevices)
+{
+  Nan::HandleScope scope;
+
+  if (auto self = Nan::ObjectWrap::Unwrap<SmartCardWrapper>(info.This()))
+  {
+    std::vector<std::string> devices;
+    self->mReader.query(devices);
+
+    v8::Local<v8::Array> array = Nan::New<v8::Array>();
+    for (std::size_t i = 0; i < devices.size(); i++) {
+      array->Set(i, Nan::New(devices[i]).ToLocalChecked());
+    }
+
+    info.GetReturnValue().Set(array);
+  }
+  else
+  {
+    return Nan::ThrowError("Unable to unwrap the native instance.");
+  }
 }
 
 NAN_METHOD(SmartCardWrapper::Setup)

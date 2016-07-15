@@ -14,7 +14,8 @@ NAN_MODULE_INIT(ModuleInit)
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
     SetPrototypeMethod(tpl, "poll", SmartCardWrapper::Poll);
-    SetPrototypeMethod(tpl, "query", SmartCardWrapper::Query);
+    SetPrototypeMethod(tpl, "queryFirst", SmartCardWrapper::QueryFirstDevice);
+    SetPrototypeMethod(tpl, "queryAll", SmartCardWrapper::QueryAllDevices);
     SetPrototypeMethod(tpl, "setup", SmartCardWrapper::Setup);
     SetPrototypeMethod(tpl, "release", SmartCardWrapper::Release);
 
