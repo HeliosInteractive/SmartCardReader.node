@@ -1,6 +1,6 @@
 {
   "name": "smartcardreader",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "NFC SmartCardReader for Node.js on Windows",
   "main": "index.js",
   "scripts": {
