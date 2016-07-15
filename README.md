@@ -53,20 +53,23 @@ SmartCardReader.on('read', (data) => {
 
 ## Binding usage
 
-### `SmartCardReader::query`
+### `SmartCardReader::queryFirst`
 Queries the first device name attached to Windows. This is an actual native query so caller is advised to cache the result.
 
-**Returns:** Device name on success, Empty string on failure.
+### `SmartCardReader::queryAll`
+Queries all device names attached to Windows. This is an actual native query so caller is advised to cache the result.
+
+**Returns:** Array of device names on success, Empty array on failure or when no device is attached.
 
 ### `SmartCardReader::poll`
-Polls data from the device returned by `SmartCardReader::query`. Caller should call this as often as possible to capture the data. Use of `process.nextTick` is advised.
+Polls data from the device. Caller should call this as often as possible to capture the data. Use of `process.nextTick` is advised.
 
-**Returns:** Read an object `{ code: 123, data: "tag" }`. *Code* is one of [values listed here](https://msdn.microsoft.com/en-us/library/ms936965.aspx). *Data* is the data read from the Smart Card (if any).
+**Returns:** An object `{ code: 123, data: "tag" }`. *Code* is one of [values listed here](https://msdn.microsoft.com/en-us/library/ms936965.aspx). *Data* is the data read from the Smart Card (if any).
 
 ### `SmartCardReader::setup`
-Re-initializes internal resources and context associated with the reader object. Calls `release` internally.
+Re-initializes internal resources and context associated with the reader object. Calls `release` internally. You may pass a device name or `SmartCardReader::queryFirst` will be used.
 
-**Returns:** *true* if context is valid AND a device is found.
+**Returns:** *true* if context is valid AND the device name passed is found and ready.
 
 ### `SmartCardReader::release`
 Releases internal resources and context associated with the reader object.
